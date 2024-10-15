@@ -2,28 +2,34 @@ from typing import Dict
 
 
 def convert2swift(json: Dict[str, str]):
-    output = "struct Label : Codable {\n"
-    for key in json.keys():
-        output += f"    let {key}: String\n"
+    variable_declaration = ""
+    coding_keys = ""
+    init_decoder = ""
+    init = ""
+
+    for key, value in json.items():
+        variable_name = key
+        variable_declaration += f"    let {variable_name}: String\n"
+        coding_keys += f"        case {variable_name} = \"{key}\"\n"
+        init_decoder += f"        self.{variable_name} = try container.decodeIfPresent(String.self, forKey: .{variable_name}) ?? \"{value}\"\n"
+        init += f"        {variable_name} = \"{value}\"\n"
+
+    output = f"""
+struct Label : Codable {{
+{variable_declaration}
+
+    enum CodingKeys : String, CodingKey {{
+{coding_keys}
+    }}
     
-    output += "\n\n"
-    output += "    enum CodingKeys : String, CodingKey {\n"
-    for key in json.keys():
-        output += f"        case {key} = \"{key}\"\n"
-    output += "    }"
-    output += "\n\n"
-
-    output += "    init(from decoder: Decoder) throws {\n"
-    output += "        let container = try decoder.container(keyedBy: CodingKeys.self)\n"
-    for key, value in json.items():
-        output += f"        self.{key} = try container.decodeIfPresent(String.self, forKey: .{key}) ?? \"{value}\"\n"
-    output += "    }"
-    output += "\n\n"
-
-    output += "    init() {\n"
-    for key, value in json.items():
-        output += f"        {key} = \"{value}\"\n"
-    output += "    }\n"
-    output += "}\n"
-
+    init(from decoder: Decoder) throws {{
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+{init_decoder}
+    }}
+    
+    init() {{
+{init}
+    }}
+}}
+"""
     return output
