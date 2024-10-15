@@ -1,5 +1,7 @@
 from typing import Dict
 
+from naming import pascalCase
+
 
 def convert2swift(json: Dict[str, str]):
     variable_declaration = ""
@@ -8,7 +10,7 @@ def convert2swift(json: Dict[str, str]):
     init = ""
 
     for key, value in json.items():
-        variable_name = key
+        variable_name = pascalCase(key)
         variable_declaration += f"    let {variable_name}: String\n"
         coding_keys += f"        case {variable_name} = \"{key}\"\n"
         init_decoder += f"        self.{variable_name} = try container.decodeIfPresent(String.self, forKey: .{variable_name}) ?? \"{value}\"\n"
